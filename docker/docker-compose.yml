@@ -52,9 +52,34 @@ services:
     networks:
       - kafka-net
  
+  product-db:
+    image: postgres:17
+    container_name: product-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test12345
+      POSTGRES_DB: products
+    ports:
+      - "5433:5432" #sağ taraf daima uygulmanın kendi portu.
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+  user-db:
+    image: postgres:17
+    container_name: user-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test12345
+      POSTGRES_DB: users
+    ports:
+      - "5434:5432" #sağ taraf daima uygulmanın kendi portu.
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
 volumes:
   kafka-data:
- 
+  product-db-data:
+  user-db-data:
+
 networks:
   kafka-net:
     driver: bridge
