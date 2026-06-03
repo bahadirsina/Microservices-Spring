@@ -3,6 +3,6 @@ package com.turkcell.user_service.event;
 import java.util.UUID;
 
 
-public record TestEvent(UUID productId, String message) {
+public record TestEvent(String message, UUID productId) {
 
 }

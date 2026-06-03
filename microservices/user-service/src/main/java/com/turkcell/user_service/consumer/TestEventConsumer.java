@@ -14,7 +14,7 @@ public class TestEventConsumer {
     @Bean
     public Consumer<TestEvent> consumeTestEvent() {
         return event -> {
-            System.out.println("Received TestEvent: " + event.message() + ", Product ID: " + event.productId());
+            System.out.println("TestEvent İŞLENDİ: " + event.message() + ", Product ID: " + event.productId());
         };
     }
 }
