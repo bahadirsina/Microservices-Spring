@@ -59,10 +59,14 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test12345
       POSTGRES_DB: products
+      # Debezium CDC için logical replication aktif et
+      POSTGRES_INITDB_ARGS: "-c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10"
     ports:
       - "5433:5432" # sağ taraf daima uygulamanın kendi portu
     volumes:
       - product-db-data:/var/lib/postgresql/data
+    networks:
+      - kafka-net
 
   user-db:
     image: postgres:17
@@ -75,6 +79,8 @@ services:
       - "5434:5432" # sağ taraf daima uygulamanın kendi portu
     volumes:
       - user-db-data:/var/lib/postgresql/data
+    networks:
+      - kafka-net
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin-gygy5
@@ -83,11 +89,52 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
+    networks:
+      - kafka-net
+  
+  # Kafka Connect - Debezium Connector host
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.5.0
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:19092
+      CONNECT_GROUP_ID: debezium-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR
+    volumes:
+      - kafka-connect-data:/var/lib/kafka-connect
+    depends_on:
+      kafka:
+        condition: service_healthy
+      product-db:
+        condition: service_started
+    networks:
+      - kafka-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/connectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
 volumes:
   kafka-data:
   product-db-data:
   user-db-data:
+  kafka-connect-data:
 
 networks:
   kafka-net:

@@ -14,4 +14,4 @@ spring:
                     brokers: localhost:9092
 
 server:
-    port: 8083
+    port: 8087

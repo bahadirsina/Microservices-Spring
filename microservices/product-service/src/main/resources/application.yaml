@@ -24,7 +24,32 @@ spring:
     jpa:
         hibernate:
             ddl-auto: update
+    
+    # Kafka consumer configuration for Debezium CDC events
+    kafka:
+        bootstrap-servers: localhost:9092
+        consumer:
+            group-id: product-service-cdc-group
+            auto-offset-reset: earliest
+            value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+            properties:
+                spring.json.trusted.packages: "*"
 
 server:
     port: 8082
+
+# Outbox Pattern Configuration
+app:
+    outbox:
+        # Polling-based approach (Legacy) - Debezium'a geçerken disable et
+        polling:
+            enabled: false  # CDC için kapalı
+        # CDC-based approach (Debezium) - Yeni yöntem
+        cdc:
+            enabled: true   # Debezium aktif
+
+logging:
+    level:
+        com.turkcell.product_service.cdc: DEBUG
+        org.springframework.kafka: INFO
 

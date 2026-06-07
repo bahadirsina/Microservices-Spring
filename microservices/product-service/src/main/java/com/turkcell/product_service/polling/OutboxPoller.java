@@ -3,6 +3,7 @@ package com.turkcell.product_service.polling;
 import java.time.Instant;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,19 @@ import com.turkcell.product_service.repository.OutboxRepository;
 import jakarta.transaction.Transactional;
 
 
+/**
+ * Outbox Polling mekanizması - Debezium CDC'ye geçiş sonrası devre dışı bırakılabilir.
+ * 
+ * Kullanım:
+ *  - Polling'i etkinleştir: app.outbox.polling.enabled=true (default)
+ *  - Polling'i kapat: app.outbox.polling.enabled=false (Debezium kullanıldığında)
+ */
 @Component
+@ConditionalOnProperty(
+    name = "app.outbox.polling.enabled", 
+    havingValue = "true", 
+    matchIfMissing = true  // Default olarak true (backward compatibility)
+)
 public class OutboxPoller {
 
     private final OutboxRepository outboxRepository;
