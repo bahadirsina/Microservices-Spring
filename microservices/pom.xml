@@ -18,6 +18,7 @@
     <name>microservices</name>
 
     <modules>
+        <module>config-server</module>
         <module>user-service</module>
         <module>product-service</module>
         <module>order-service</module>
