@@ -22,7 +22,7 @@ spring:
         password: test12345
         driver-class-name: org.postgresql.Driver
     jpa:
-        hibernate:
+        hibernate: 
             ddl-auto: update
     
     # Kafka consumer configuration for Debezium CDC events
